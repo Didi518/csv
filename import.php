@@ -7,7 +7,7 @@ $dbuser = "root";
 $dbpass = "proot";
 
 $pdo = new PDO(
-    "mysql:host = $dbhost; dbname; charset = $dbchar", $dbuser, $dbpass, [
+    "mysql:host = $dbhost; dbname = $dbname; charset = $dbchar", $dbuser, $dbpass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]
 );
