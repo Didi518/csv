@@ -4,37 +4,50 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// connecter DB
-$dbhost = "localhost";
-$dbname = "simplon_test";
-$dbchar = "utf8";
-$dbuser = "root";
-$dbpass = "proot";
+//connecter bdd
+$pdo = mysqli_connect("localhost", "root", "proot", "simplon_test");
 
-$pdo = new PDO(
-    "mysql:host = $dbhost; dbname = $dbname; charset = $dbchar", $dbuser, $dbpass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]
-);
-
-//lecture fichier csv
-$fh = fopen($_FILES["upcsv"]["tmp_name"], "r");
-if($fh === false) {
-    exit("Erreur lors de l'importation du fichier.");
-}
-
-//importation des fichiers ligne par ligne
-while(($ligne = fgetcsv($fh)) !== false) {
-    try {
-        $stmt = $pdo->prepare("INSERT INTO `people` (`id`, `firstname`, `lastname`, `email`, `profession`, `birthdate`, `country`, `phone`) VALUES (?, ?, ?, ?, ?, ?, ?, ?");
-        $stmt->execute([
-            $ligne[0], $ligne[1], $ligne[2], $ligne[3], $ligne[4], $ligne[5], $ligne[6], $ligne[7]
-        ]);
-    } catch(Exception $ex) {
-        echo $ex->getMessage();
+//insérer csv dans bdd
+if(isset($_POST["submit"])) {
+    if($_FILES['file']['name']) {
+        $filename = explode(".", $_FILES['file']['name']);
+        if($filename[1] == 'csv') {
+            $handle = fopen($_FILES['file']['tmp_name'], "r");
+            while($data = fgetcsv($handle)) {
+                $item1 = mysqli_real_escape_string($pdo, $data[0]);
+                $item2 = mysqli_real_escape_string($pdo, $data[1]);
+                $item3 = mysqli_real_escape_string($pdo, $data[2]);
+                $item4 = mysqli_real_escape_string($pdo, $data[3]);
+                $item5 = mysqli_real_escape_string($pdo, $data[4]);
+                $item6 = mysqli_real_escape_string($pdo, $data[5]);
+                $item7 = mysqli_real_escape_string($pdo, $data[6]);
+                $item8 = mysqli_real_escape_string($pdo, $data[7]);
+                $sql = "INSERT INTO people (id, firstname, lastname, email, profession, birthdate, country, phone) Values ('$item1', '$item2', '$item3', '$item4', '$item5', '$item6', '$item7', '$item8')";
+                mysqli_query($pdo, $sql);
+            }
+            fclose($handle);
+            print "Succès !";
+        }
     }
 }
 
-//DONE !
-fclose($fh);
-echo "FAIT !";
+
+// form html
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import.csv</title>
+</head>
+<body>
+    <form method="POST" enctype="multipart/form-data">
+        <div>
+            <p>Importer CSV: <input type="file" name="file" /></p>
+            <p><input type="submit" name="submit" value="import" /></p>
+        </div>
+    </form>
+</body>
+</html>
